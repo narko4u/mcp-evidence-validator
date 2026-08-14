@@ -1,0 +1,59 @@
+{
+  "server": "fictional-weather",
+  "declared_at": "2026-08-01T00:00:00Z",
+  "tools": [
+    {
+      "name": "get_forecast",
+      "description": "Return forecast for a city",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          }
+        },
+        "required": [
+          "city"
+        ]
+      },
+      "permissions": [
+        "read:weather"
+      ]
+    },
+    {
+      "name": "submit_weather_report",
+      "description": "Submit a community weather report",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "condition"
+        ]
+      },
+      "permissions": [
+        "write:weather"
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "id": "ann-001",
+      "tool": "get_forecast",
+      "statement": "read-only access to public weather data",
+      "bound_contract": "sha256:9e205a4822a9f51eaae4570faa62a16e7535558e5bc690fac68b1aebb89c0dbd"
+    }
+  ]
+}
