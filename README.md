@@ -75,6 +75,13 @@ Output is a machine-readable evidence record with a `chain` of hash-linked entri
 
 - [x] Installable package (v0.2, `mcp-ev-validate` CLI, `verify` subcommand)
 - [x] Test suite + CI (Python 3.10–3.12)
+- [ ] **A2A agent-card validation (v0.3)** — validate A2A agent cards
+      (`.well-known/agent-card.json`) against observed agent behaviour:
+      declared capabilities vs runtime delegation, auth requirements honoured,
+      signed-card identity checks. A2A is an AAIF-hosted project (joined
+      Aug 2026); this extends the declared-vs-observed evidence ladder to the
+      agent-to-agent boundary. Directly addresses the open A2A identity
+      verification gap (a2aproject/A2A issue #1672).
 - [ ] MCP client integration (intercept tool-call records via a lightweight proxy)
 - [ ] Automated review-scheduling gate (re-validate annotations on contract change)
 - [ ] Report renderers (HTML, PDF)
