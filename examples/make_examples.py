@@ -1,6 +1,6 @@
 """Generates the fictional demo manifests for the MCP Evidence Validator.
 
-Run:  python3 make_examples.py
+Run:  python3 make_examples.py   (or:  python -m mcp_evidence_validator)
 Writes:
   examples/fictional-server-declared.json
   examples/fictional-server-observed.json
@@ -10,8 +10,8 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "prototype"))
-from fingerprint import fingerprint
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from mcp_evidence_validator.fingerprint import fingerprint
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 

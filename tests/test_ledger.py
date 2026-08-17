@@ -1,0 +1,61 @@
+"""Ledger integrity tests."""
+
+import json
+
+import pytest
+
+from mcp_evidence_validator import GENESIS, Ledger
+
+
+def test_genesis_constant():
+    assert GENESIS == "sha256:" + "0" * 64
+
+
+def test_append_chains_hashes():
+    led = Ledger()
+    led.append("declaration", {"a": 1})
+    led.append("observation", {"b": 2})
+    assert len(led) == 2
+    assert led.verify() == []
+    assert led._blocks[0]["prev_hash"] == GENESIS
+    assert led._blocks[1]["prev_hash"] == led._blocks[0]["hash"]
+
+
+def test_tamper_detected():
+    led = Ledger()
+    led.append("declaration", {"tool": "x"})
+    led.append("report", {"findings": 0})
+    assert led.verify() == []
+    # Tamper with an early block
+    led._blocks[0]["record"]["tool"] = "y"
+    problems = led.verify()
+    assert problems, "tampering must be detected"
+
+
+def test_mid_chain_tamper_detected():
+    led = Ledger()
+    for i in range(4):
+        led.append("observation", {"i": i})
+    assert led.verify() == []
+    led._blocks[2]["record"]["i"] = 999
+    assert led.verify()
+
+
+def test_roundtrip_dump_load(tmp_path):
+    led = Ledger()
+    led.append("declaration", {"tools": []})
+    out = tmp_path / "evidence.json"
+    led.dump(str(out))
+    data = json.loads(out.read_text())
+    assert data["ledger"] == "mcp-evidence-validator"
+    assert data["version"] == "0.2"
+    loaded = Ledger.load(str(out))
+    assert len(loaded) == 1
+    assert loaded.verify() == []
+
+
+def test_load_rejects_foreign_ledger(tmp_path):
+    foreign = tmp_path / "foreign.json"
+    foreign.write_text(json.dumps({"ledger": "other-thing", "blocks": []}))
+    with pytest.raises(ValueError):
+        Ledger.load(str(foreign))

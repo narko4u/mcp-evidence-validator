@@ -2,9 +2,7 @@
 
 Validate what an MCP server *declares* against what it *actually does*, and produce a tamper-evident evidence record you can hand to an auditor.
 
-**Status:** Prototype (draft v0.1)  
-**License:** Apache-2.0  
-**Language:** Python 3.10+ (stdlib only)
+**Status:** v0.2 (installable)  ·  **License:** Apache-2.0  ·  **Language:** Python 3.10+ (stdlib only, zero dependencies)
 
 ---
 
@@ -27,17 +25,34 @@ The **declared-vs-observed gap** is the measurement finding that matters. This v
 3. **Checks the gap** - declared annotation still bound? Contract mutated since declaration? Privilege use inside declared scope?
 4. **Produces a tamper-evident ledger** - every check result is committed to a SHA-256 hash chain. Changing any earlier record invalidates every record after it.
 
+## Install
+
+```bash
+pip install mcp-evidence-validator      # from PyPI once published
+# or from source:
+git clone https://github.com/narko4u/mcp-evidence-validator.git
+cd mcp-evidence-validator
+pip install .
+```
+
+No dependencies — Python 3.10+ standard library only.
+
 ## Quick start
 
 ```bash
-cd prototype
-python3 validate.py --declared ../examples/fictional-server-declared.json \
-                    --observed ../examples/fictional-server-observed.json \
-                    --out /tmp/evidence.json
-cat /tmp/evidence.json
+# Compare a declared manifest against observed runtime records
+mcp-ev-validate validate \
+    --declared examples/fictional-server-declared.json \
+    --observed examples/fictional-server-observed.json \
+    --out /tmp/evidence.json
+
+# Audit a ledger later: prove no record was altered
+mcp-ev-validate verify --ledger /tmp/evidence.json
 ```
 
-Output is a machine-readable evidence record with a `chain` of hash-linked entries plus a human-readable `findings` summary.
+Or run as a module: `python -m mcp_evidence_validator validate --declared ...`
+
+Output is a machine-readable evidence record with a `chain` of hash-linked entries plus a human-readable `findings` summary. The `verify` subcommand replays the hash chain and reports any corruption — try editing `/tmp/evidence.json` and re-verifying.
 
 ## Concepts
 
@@ -50,7 +65,7 @@ Output is a machine-readable evidence record with a `chain` of hash-linked entri
 | Finding | A measurable gap between declaration and observation |
 | Ledger | An append-only SHA-256 hash chain over every captured record |
 
-## Check types (prototype)
+## Check types
 
 - **Bound, contract unmutated** - healthy baseline: annotation still matches the contract it was declared against.
 - **Bound, contract since mutated** - finding: the annotation was accurate at declaration time but is stale because the contract moved underneath it. Pairs with a review-scheduling gate.
@@ -58,15 +73,21 @@ Output is a machine-readable evidence record with a `chain` of hash-linked entri
 
 ## Roadmap
 
+- [x] Installable package (v0.2, `mcp-ev-validate` CLI, `verify` subcommand)
+- [x] Test suite + CI (Python 3.10–3.12)
 - [ ] MCP client integration (intercept tool-call records via a lightweight proxy)
 - [ ] Automated review-scheduling gate (re-validate annotations on contract change)
-- [ ] Report renderers (JSON, HTML, PDF)
+- [ ] Report renderers (HTML, PDF)
 - [ ] Policy pack support (declare what "acceptable" means per environment)
 
 ## Project status
 
 This is the public face of an evidence-engineering programme. The core ideas are exercised in production-grade systems elsewhere in the organisation; this repository is the open, reference implementation. It contains no proprietary code and no real client data. All examples are fictional.
 
-## Feedback
+## Security
 
-Open an issue or start a discussion. Contributions welcome under the Apache-2.0 licence.
+See [SECURITY.md](SECURITY.md) for the vulnerability reporting policy. Security issues are handled privately — do not open a public issue.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions welcome under the Apache-2.0 licence; please follow the Code of Conduct.
