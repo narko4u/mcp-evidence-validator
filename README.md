@@ -1,5 +1,7 @@
 # MCP Evidence Validator
 
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/14122/baseline)](https://www.bestpractices.dev/projects/14122)
+
 Validate what an MCP server *declares* against what it *actually does*, and produce a tamper-evident evidence record you can hand to an auditor.
 
 **Status:** v0.2 (installable)  ·  **License:** Apache-2.0  ·  **Language:** Python 3.10+ (stdlib only, zero dependencies)
