@@ -32,6 +32,23 @@ jobs:
           python -m build
           ls -la dist/
 
+      - name: Validate release tag input
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          if ! echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Invalid tag '$TAG' — expected SemVer like v0.2.1" >&2
+            exit 1
+          fi
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./
+          format: cyclonedx-json
+          output-file: dist/SBOM.cdx.json
+          artifact-name: sbom
+
       - name: Generate SHA256SUMS
         run: |
           cd dist
