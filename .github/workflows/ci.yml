@@ -41,7 +41,7 @@ jobs:
         run: |
           set -e
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          for c in $(git rev-list "$BASE_SHA..HEAD"); do
+          for c in $(git rev-list --no-merges "$BASE_SHA..HEAD"); do
             if ! git log -1 --format=%B "$c" | grep -q '^Signed-off-by:'; then
               echo "Missing Signed-off-by trailer in commit $c"
               echo "Amend with: git commit --amend -s"
