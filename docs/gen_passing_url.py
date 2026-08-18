@@ -6,6 +6,10 @@ Format per ossf/best-practices-badge docs/automation-proposals.md:
   /en/projects/14122/passing/edit?KEY=VALUE&KEY=VALUE...
   KEY = <criterion>_status | <criterion>_justification
   Status values: ?, Unmet, N/A, Met
+
+Criterion list mirrors the live bestpractices.dev form for project 14122
+(verified 2026-08-18 by scraping the public project page). Section counts:
+Basics 13, Change Control 9, Reporting 8, Quality 13, Security 16, Analysis 8.
 """
 from urllib.parse import quote_plus
 
@@ -51,20 +55,22 @@ CRITERIA = [
     ("test", "Met", "pytest suite (20 tests) runs in CI and is documented in CONTRIBUTING.md"),
     ("test_invocation", "Met", "CI runs pytest; how to run tests documented in CONTRIBUTING.md"),
     ("test_most", "Met", "Tests cover the core modules (validator, ledger, fingerprint)"),
+    ("test_continuous_integration", "Met", "GitHub Actions runs the full test suite on every PR and push"),
     ("test_policy", "Met", "CONTRIBUTING.md requires tests for major new functionality"),
     ("tests_are_added", "Met", "New functionality lands with tests in the same PR"),
     ("tests_documented_added", "Met", "Test requirements and additions documented in CONTRIBUTING.md"),
     ("warnings", "Met", "ruff linter runs in CI on every PR and push (fails on any finding)"),
     ("warnings_fixed", "Met", "CI blocks merge on any lint finding; current tree is clean"),
     ("warnings_strict", "Met", "ruff enforces a broad rule set and fails the build on any violation"),
-    ("know_secure_design", "Met", "docs/DESIGN.md and docs/THREAT-ASSESSMENT.md document secure design approach"),
     # --- Security (16) ---
+    ("know_secure_design", "Met", "docs/DESIGN.md and docs/THREAT-ASSESSMENT.md document secure design approach"),
     ("know_common_errors", "Met", "docs/THREAT-ASSESSMENT.md covers common security pitfalls and mitigations"),
     ("crypto_published", "N/A", "Project implements no encryption; uses only SHA-256 for integrity hashing"),
     ("crypto_call", "N/A", "No cryptographic primitives are implemented or called directly"),
     ("crypto_floss", "N/A", "No encryption functionality to implement"),
     ("crypto_keylength", "N/A", "No encryption keys used"),
     ("crypto_working", "N/A", "No encryption mechanisms"),
+    ("crypto_weaknesses", "Met", "Only SHA-256 is used for integrity hashing; no algorithms or modes with known serious weaknesses"),
     ("crypto_pfs", "N/A", "No encrypted communication channels"),
     ("crypto_password_storage", "N/A", "No password storage"),
     ("crypto_random", "N/A", "No cryptographic randomness requirements"),
@@ -73,15 +79,13 @@ CRITERIA = [
     ("vulnerabilities_fixed_60_days", "Met", "No known unpatched vulnerabilities"),
     ("vulnerabilities_critical_fixed", "Met", "No known critical vulnerabilities; SECURITY.md 90-day policy"),
     ("no_leaked_credentials", "Met", "Credential leak audit passed; secret scanning and push protection enabled"),
-    ("installation_common", "Met", "Standard installation via pip (python -m pip install mcp-evidence-validator)"),
-    ("test_continuous_integration", "Met", "GitHub Actions runs the full test suite on every PR and push"),
     # --- Analysis (8) ---
     ("static_analysis", "Met", "bandit security scanner runs in CI on every PR and push"),
     ("static_analysis_common_vulnerabilities", "Met", "bandit checks common vulnerability patterns"),
     ("static_analysis_fixed", "Met", "CI fails on any bandit finding; current tree has zero findings"),
     ("static_analysis_often", "Met", "Static analysis runs on every pull request and push"),
     ("dynamic_analysis", "Unmet", "No dynamic analysis tool applied yet"),
-    ("dynamic_analysis_unsafe", "Unmet", "No dynamic analysis tool applied yet"),
+    ("dynamic_analysis_unsafe", "N/A", "Pure Python project; no memory-unsafe language to guard"),
     ("dynamic_analysis_enable_assertions", "N/A", "Pure Python project; no memory-unsafe language to guard"),
     ("dynamic_analysis_fixed", "Unmet", "No dynamic analysis in place yet"),
 ]
