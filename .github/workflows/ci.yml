@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -26,3 +29,23 @@ jobs:
         run: pytest
       - name: Verify CLI entry point
         run: mcp-ev-validate --version
+
+  dco:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check Signed-off-by on all PR commits
+        run: |
+          set -e
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          for c in $(git rev-list "$BASE_SHA..HEAD"); do
+            if ! git log -1 --format=%B "$c" | grep -q '^Signed-off-by:'; then
+              echo "Missing Signed-off-by trailer in commit $c"
+              echo "Amend with: git commit --amend -s"
+              exit 1
+            fi
+          done
+          echo "All commits carry Signed-off-by."

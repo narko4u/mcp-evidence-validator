@@ -43,6 +43,14 @@ first contributions:
 4. Open a PR against `main` and describe the change and the test evidence.
 5. A maintainer will review; expect at least one round of review.
 
+## Developer certificate of origin
+
+Every commit must carry a `Signed-off-by` trailer asserting that you are
+legally authorized to make the contribution (Developer Certificate of
+Origin, https://developercertificate.org/). CI enforces this on pull
+requests. Add it with `git commit -s` (or `git commit --amend -s` for an
+existing commit).
+
 ## Code of conduct
 
 All participants must follow the project's
