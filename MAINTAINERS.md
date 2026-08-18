@@ -32,8 +32,10 @@ only after the review above completes.
 - **Maintainer (Empire Labs Pty Ltd / `narko4u`)**
   - Owns the repository, releases, and security response.
   - Reviews and merges pull requests (all merges go through PR review per
-    branch protection; the maintainer cannot approve their own PR, so a
-    second reviewer is required for each merge).
+    branch protection; as a single-maintainer project there is no
+    non-author human reviewer, so OpenSSF criterion QA-07.01 is claimed
+    N/A. The collaborator review policy above governs how review is
+    enforced should additional maintainers join).
   - Triages security reports per `SECURITY.md` (72h acknowledgement, 90-day
     coordinated disclosure).
   - Decides on dependency additions (project intentionally ships with a
