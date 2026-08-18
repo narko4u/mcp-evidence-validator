@@ -8,7 +8,7 @@ later block, so a forged or edited ledger is detectable in one pass.
 
 import hashlib
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 from .fingerprint import canonical_json
 
@@ -20,12 +20,12 @@ LEDGER_VERSION = "0.2"
 
 class Ledger:
     def __init__(self) -> None:
-        self._blocks: List[Dict[str, Any]] = []
+        self._blocks: list[dict[str, Any]] = []
 
     @classmethod
     def load(cls, path: str) -> "Ledger":
         led = cls()
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
         if data.get("ledger") != LEDGER_NAME:
             raise ValueError(
@@ -34,7 +34,7 @@ class Ledger:
         led._blocks = data.get("blocks", [])
         return led
 
-    def append(self, record_type: str, record: Dict[str, Any]) -> Dict[str, Any]:
+    def append(self, record_type: str, record: dict[str, Any]) -> dict[str, Any]:
         prev_hash = self._blocks[-1]["hash"] if self._blocks else GENESIS
         body = canonical_json({"type": record_type, "record": record})
         block_hash = "sha256:" + hashlib.sha256(
@@ -50,7 +50,7 @@ class Ledger:
         self._blocks.append(block)
         return block
 
-    def verify(self) -> List[str]:
+    def verify(self) -> list[str]:
         """Return a list of corruption messages (empty when intact)."""
         problems = []
         prev_hash = GENESIS

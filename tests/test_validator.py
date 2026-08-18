@@ -2,7 +2,7 @@
 
 import json
 
-from mcp_evidence_validator import Ledger, validate_batch
+from mcp_evidence_validator import validate_batch
 from mcp_evidence_validator.cli import main
 
 DECLARED = {
