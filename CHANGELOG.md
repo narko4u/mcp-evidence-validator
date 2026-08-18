@@ -4,6 +4,12 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [SemVer](https://semver.org/).
 
+## [0.2.1] - 2026-08-18
+
+### Added
+- Release workflow with sigstore keyless signing (SHA256SUMS + cosign signature)
+- OpenSSF baseline level 2 readiness: MAINTAINERS.md, threat assessment, DCO check, least-privilege CI permissions
+
 ## [0.2.0] - 2026-08-17
 
 ### Added
