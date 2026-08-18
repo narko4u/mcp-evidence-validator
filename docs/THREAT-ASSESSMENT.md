@@ -39,6 +39,22 @@ dependencies, and stores no credentials.
   observer/client wrapper), identity and delegated authorization (AAIF
   Identity & Trust WG domain).
 
+## Attack surface analysis
+
+Critical code paths, functions, and interactions, with the threats
+considered for each:
+
+| Surface | Critical path / functions | Threat scenarios considered |
+|---------|---------------------------|------------------------------|
+| CLI entry (`cli.py`) | argument parsing, file reads, subcommand dispatch | crafted arguments, symlink/file confusion, path traversal, unexpected encodings |
+| Fingerprint engine (`validator.py`) | canonical-JSON serialization, hash computation | key-ordering confusion, whitespace/unicode ambiguity, duplicate keys, oversized payloads, algorithm confusion |
+| Ledger append/verify (`ledger.py`) | hash-chain linking, genesis handling, re-verification | reorder, delete, replay, partial-write, foreign-ledger substitution, nonce/counter forgery |
+| Evidence records | redaction flags, metadata fields | credential leakage into records, spoofed metadata, type confusion |
+
+Threat-model update policy: this analysis is re-run and updated before each
+release and whenever a new feature or breaking change touches any of the
+surfaces above (per the OSPS SA-03.02 control).
+
 ## Security review policy
 
 - Review before each release; findings filed privately per `SECURITY.md`.

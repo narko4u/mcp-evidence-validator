@@ -9,6 +9,24 @@
 Single-maintainer project. No other accounts have write, admin, or secrets
 access to this repository.
 
+## Collaborator review policy
+
+Before any collaborator is granted escalated permissions to sensitive
+resources (merge approval, branch protection changes, secrets access, or
+admin rights), the following review must take place:
+
+1. The proposed collaborator's contribution history is reviewed (quality,
+   intent, and consistency with the project's security posture).
+2. The identity lineage is established where practicable (association with a
+   known trusted organisation, verifiable public identity, or prior
+   maintainer relationship).
+3. Approval is recorded in the repository (issue or PR comment) before
+   access is granted.
+
+This policy is enforced by branch protection: the primary branch requires
+review approval and no direct push is permitted. Escalated access is granted
+only after the review above completes.
+
 ## Roles and responsibilities
 
 - **Maintainer (Empire Labs Pty Ltd / `narko4u`)**

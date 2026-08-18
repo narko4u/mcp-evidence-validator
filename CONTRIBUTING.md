@@ -34,6 +34,29 @@ first contributions:
 - MCP client integration (intercepting tool-call records)
 - Documentation and examples
 
+## How tests are run
+
+- **Locally:** `pytest` from the repository root (see Getting started).
+  Tests cover the hash-chain construction (genesis, mid-chain tamper,
+  foreign-ledger reject), canonical JSON fingerprinting, CLI behaviour, and
+  the ledger append/verify flow.
+- **In CI:** the `CI` workflow runs on every push and pull request. It runs
+  the full pytest suite on Python 3.10, 3.11, and 3.12, lints with Ruff,
+  runs Bandit static analysis, and enforces the DCO on pull requests.
+- **Interpreting results:** all checks must be green before a PR merges. The
+  suite is deterministic — a red run indicates a real regression, not flake.
+
+## Test policy for changes
+
+- **Every change that alters behaviour MUST add or update tests** covering
+  the changed functionality in the automated suite.
+- A "major change" (new subcommand, ledger-format change, canonical-encoding
+  change, new check type) additionally requires tests for the happy path,
+  at least one adversarial case (malformed/duplicate/huge input), and a
+  tamper case where applicable.
+- Test-only or documentation-only changes do not require new tests, but must
+  keep the existing suite green.
+
 ## Pull request process
 
 1. Fork the repository and create a branch: `feat/<what>` or `fix/<what>`.

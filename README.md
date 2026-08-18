@@ -97,6 +97,35 @@ This is the public face of an evidence-engineering programme. The core ideas are
 
 See [SECURITY.md](SECURITY.md) for the vulnerability reporting policy. Security issues are handled privately — do not open a public issue.
 
+## Verifying releases
+
+Releases are signed with **sigstore keyless signing** (GitHub Actions
+workload identity). Each release contains:
+
+- `SHA256SUMS` — hashes of every release asset
+- `SHA256SUMS.sig` — the cosign signature over `SHA256SUMS`
+- `SHA256SUMS.pem` — the ephemeral signing certificate
+
+To verify a release (requires the [cosign CLI](https://docs.sigstore.dev/cosign/installation/)):
+
+```sh
+cosign verify-blob \
+  --cert SHA256SUMS.pem \
+  --signature SHA256SUMS.sig \
+  --certificate-identity "https://github.com/narko4u/mcp-evidence-validator/.github/workflows/release.yml@refs/tags/v0.2.1" \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+  SHA256SUMS
+```
+
+The expected signer identity is the repository's `release.yml` workflow
+running under the release tag (GitHub Actions OIDC, issuer
+`https://token.actions.githubusercontent.com`). After the signature
+verifies, check the asset hashes:
+
+```sh
+sha256sum -c SHA256SUMS
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions welcome under the Apache-2.0 licence; please follow the Code of Conduct.
