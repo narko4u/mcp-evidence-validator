@@ -4,12 +4,12 @@ Produces findings for the declared-vs-observed gap and a human-readable
 summary. The caller is responsible for ledger bookkeeping.
 """
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from .fingerprint import fingerprint
 
 
-def build_contract(tool: Dict[str, Any]) -> str:
+def build_contract(tool: dict[str, Any]) -> str:
     """Canonical fingerprint of a tool declaration."""
     return fingerprint(
         {
@@ -22,8 +22,8 @@ def build_contract(tool: Dict[str, Any]) -> str:
 
 
 def validate_batch(
-    declared: Dict[str, Any], observed: Dict[str, Any]
-) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    declared: dict[str, Any], observed: dict[str, Any]
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Compare a declared manifest against an observed runtime batch.
 
     Returns (findings, summary). Findings are dicts with keys:
@@ -31,11 +31,11 @@ def validate_batch(
     """
     tools = {t["name"]: t for t in declared.get("tools", [])}
     annotations = declared.get("annotations", [])
-    ann_by_tool: Dict[str, List[Dict[str, Any]]] = {}
+    ann_by_tool: dict[str, list[dict[str, Any]]] = {}
     for ann in annotations:
         ann_by_tool.setdefault(ann.get("tool"), []).append(ann)
 
-    findings: List[Dict[str, Any]] = []
+    findings: list[dict[str, Any]] = []
     obs_list = observed.get("observations", [])
 
     for obs in obs_list:

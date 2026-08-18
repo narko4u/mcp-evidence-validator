@@ -36,6 +36,22 @@ jobs:
     steps:
       - run: echo "All matrix test jobs passed"
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lint tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff bandit
+      - name: Ruff lint
+        run: ruff check src tests
+      - name: Bandit security scan
+        run: bandit -q -r src -c pyproject.toml
+
   dco:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'

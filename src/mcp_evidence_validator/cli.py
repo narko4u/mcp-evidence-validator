@@ -8,15 +8,15 @@ Subcommands:
 import argparse
 import json
 import sys
-from typing import Dict, Any, Optional
+from typing import Any
 
 from . import __version__
 from .ledger import Ledger
 from .validator import validate_batch
 
 
-def load_json(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as fh:
+def load_json(path: str) -> dict[str, Any]:
+    with open(path, encoding="utf-8") as fh:
         return json.load(fh)
 
 
@@ -86,7 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[list] = None) -> int:
+def main(argv: list | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
