@@ -1,6 +1,6 @@
 # MCP Evidence Validator
 
-[![OpenSSF Baseline](https://www.bestpractices.dev/projects/14122/baseline)](https://www.bestpractices.dev/projects/14122)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14122/badge)](https://www.bestpractices.dev/projects/14122)
 
 Validate what an MCP server *declares* against what it *actually does*, and produce a tamper-evident evidence record you can hand to an auditor.
 
