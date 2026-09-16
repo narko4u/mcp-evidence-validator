@@ -6,6 +6,24 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-09-16
+
+### Fixed
+- The documented release-verification command named `@refs/tags/v0.2.1`, so
+  copying it from the README against any later release failed with `none of the
+  expected identities matched what was in the certificate`. It now takes the tag
+  being verified as `$TAG`, because the signer identity *is* the workflow running
+  under that tag — a fixed tag in the docs is wrong from the next release on.
+- The install block said "from PyPI once published". It has been published since
+  v0.4.3.
+
+### Added
+- Release verification now documents the PEP 740 build attestations carried by
+  the wheel and sdist, with the command that checks them, and states what the
+  check looks like when it refuses a file built by a different repository. No
+  signing key exists in that path, which makes it the cheaper check for someone
+  who has just run `pip install`.
+
 ## [0.4.3] - 2026-09-16
 
 ### Added
