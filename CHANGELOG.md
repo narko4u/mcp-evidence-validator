@@ -6,6 +6,14 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- Corrected the wording of the 0.5.0 note about the unknown-recipe test. It said
+  the test "passed by accepting a valid recipe"; it did not pass. When recipe 3
+  shipped, the value that test was written to reject became valid, so the
+  assertion stopped rejecting anything and the test **failed**. The sdist for
+  0.5.0 carries the earlier wording and is not rebuilt: the artifacts are signed
+  and published, and re-cutting a version is not an option for a wording fix.
+
 ## [0.5.0] - 2026-09-16
 
 ### Added
@@ -32,11 +40,11 @@ All notable changes to this project are documented here. Format follows
   construction rather than implied to be evidence the capture holds.
 
 ### Fixed
-- A test asserted that recipe `"3"` was rejected as an unknown recipe. Introducing
-  recipe 3 made it pass by *accepting* a valid recipe instead of by rejecting an
-  invalid one, so it had stopped testing anything. The sentinel is now outside the
-  known set, and the test says why — a rejected-value fixture that later becomes a
-  real value fails silently.
+- A test asserted that recipe `"3"` was rejected as an unknown recipe. When
+  recipe 3 shipped, the value that test was written to reject became valid, so
+  the assertion stopped rejecting anything and the test went red. The sentinel
+  is now outside the known set, and the test records why: a rejected-value
+  fixture stops rejecting the moment that value becomes real.
 - A test asserts that every field a recipe hashes is carried by the capture's
   wire-to-declaration mapping. A field the mapping dropped would leave the hash
   covering the fallback default and reporting a contract no server served.
