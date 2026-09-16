@@ -60,8 +60,11 @@ The recipe is therefore carried in the evidence, not assumed:
 |--------|-----------------------------|
 | `1` | `name`, `description`, `input_schema`, `permissions` |
 | `2` | recipe 1, plus `output_schema` and the tool's MCP `annotations` hints |
+| `3` | recipe 2, plus the tool's `title` and its `execution` parameters (`taskSupport`) |
 
 Why recipe 2 exists: recipe 1 could not see a server that changed only what it returns, or only the hints it publishes about its own side effects (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`). A tool whose input schema and description are stable while its output schema widens — or while it starts declaring itself destructive — reported healthy. That is issue #23, and it is pinned as a test rather than fixed quietly.
+
+Why recipe 3 exists: recipe 2 left the same class of blind spot on two other fields the wire carries. Every served tool in the committed capture (14/14) carries a `title` and an `execution` block, and neither was in the hash, so a server could retitle a tool — display metadata a client may put in front of a user, and which a decision may later be recorded against — or change what its execution permits, and still report healthy. That is issue #26. The captures show both fields served and unchanged between the two captured versions, so the gap is pinned by a constructed mutation, not by one the example exhibits. Recipe 3 still excludes `_meta` and `icons`: no capture has carried either, and folding in a field the declaration does not hold would hash a default and report a contract no server served.
 
 Four rules keep the migration honest:
 

@@ -34,12 +34,18 @@ from typing import Any
 from .fingerprint import fingerprint
 
 #: Recipe used for new declarations.
-CONTRACT_RECIPE_CURRENT = "2"
+CONTRACT_RECIPE_CURRENT = "3"
 
 #: Recipe assumed for a declaration that does not state one.
 CONTRACT_RECIPE_LEGACY = "1"
 
 #: Which declaration fields each recipe folds into the contract hash.
+#:
+#: Recipes are cumulative by construction: each one is the previous field set
+#: plus what it was introduced to cover. A recipe deliberately excludes the
+#: fields no capture has ever carried (``_meta``, ``icons``) - folding in a
+#: field a declaration does not carry would hash the fallback default and
+#: report a contract that no server served.
 CONTRACT_RECIPE_FIELDS: dict[str, tuple[str, ...]] = {
     "1": ("name", "description", "input_schema", "permissions"),
     "2": (
@@ -50,17 +56,29 @@ CONTRACT_RECIPE_FIELDS: dict[str, tuple[str, ...]] = {
         "output_schema",
         "annotations",
     ),
+    "3": (
+        "name",
+        "description",
+        "input_schema",
+        "permissions",
+        "output_schema",
+        "annotations",
+        "title",
+        "execution",
+    ),
 }
 
 #: Fallback for a field the declaration does not carry. These reproduce the
 #: reads recipe 1 has always performed, so its hashes are unchanged by the
-#: introduction of recipe 2.
+#: introduction of later recipes.
 _FIELD_DEFAULTS: dict[str, Any] = {
     "description": "",
     "input_schema": {},
     "permissions": [],
     "output_schema": {},
     "annotations": {},
+    "title": "",
+    "execution": {},
 }
 
 #: What each recipe covers, for reports and documentation.
@@ -70,6 +88,10 @@ CONTRACT_RECIPE_NOTES: dict[str, str] = {
         "recipe 1 plus the tool's declared output schema and its MCP "
         "annotation hints (readOnlyHint, destructiveHint, idempotentHint, "
         "openWorldHint)"
+    ),
+    "3": (
+        "recipe 2 plus the tool's declared title and its execution parameters "
+        "(taskSupport)"
     ),
 }
 
