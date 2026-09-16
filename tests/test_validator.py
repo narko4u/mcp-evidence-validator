@@ -197,11 +197,15 @@ def test_recipe_2_covers_what_recipe_1_could_not():
 def test_an_unknown_recipe_is_rejected_rather_than_guessed():
     import pytest
 
+    # Keep these outside the known recipe set. A sentinel that later becomes a
+    # real recipe silently stops testing anything: this assertion used "3"
+    # until recipe 3 existed, at which point it passed by accepting a valid
+    # recipe instead of by rejecting an invalid one.
     obs = make_observed([])
     with pytest.raises(ValueError, match="unknown contract recipe"):
-        validate_batch(dict(DECLARED, contract_recipe="3"), obs)
+        validate_batch(dict(DECLARED, contract_recipe="9"), obs)
     with pytest.raises(ValueError, match="unknown contract recipe"):
-        build_contract(DECLARED["tools"][0], "9")
+        build_contract(DECLARED["tools"][0], "99")
 
 
 def test_a_recipe_mismatch_is_reported_not_guessed():

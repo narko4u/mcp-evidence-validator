@@ -5,7 +5,7 @@
 
 Validate what an MCP server *declares* against what it *actually does*, and produce a tamper-evident evidence record you can hand to an auditor.
 
-**Status:** v0.4.4 — published on PyPI with build attestations  ·  **License:** Apache-2.0  ·  **Language:** Python 3.10+ (stdlib only, zero dependencies)
+**Status:** v0.5.0 — published on PyPI with build attestations  ·  **License:** Apache-2.0  ·  **Language:** Python 3.10+ (stdlib only, zero dependencies)
 
 **Built by [Empire Labs Pty Ltd](https://empirelabs.com.au)** and published as part of the Empire Stack — the evidence layer for agent actions. Related public work:
 
@@ -108,7 +108,7 @@ Output is a machine-readable evidence record with a `chain` of hash-linked entri
 | Example | Server | Declared | Observed | Recipe | Shows |
 |---------|--------|----------|----------|--------|-------|
 | `examples/fictional-server-*.json` | fictional weather server | — | — | 1 (legacy) | all three checks against constructed data |
-| `examples/filesystem-server-*.json` | `@modelcontextprotocol/server-filesystem` | 2026.1.14 | 2026.8.31 | 2 | three real contract mutations between two releases, two of which recipe 1 could not see |
+| `examples/filesystem-server-*.json` | `@modelcontextprotocol/server-filesystem` | 2026.1.14 | 2026.8.31 | 3 | three real contract mutations between two releases, two of which recipe 1 could not see |
 
 The second pair is a real capture, not a constructed one:
 
@@ -119,6 +119,8 @@ mcp-ev-validate validate --declared examples/filesystem-server-declared.json --o
 It reports three findings, one per observed call. `read_media_file`'s contract moved between the two versions in a way that matters to a caller: the description went from "Read an image or audio file" to reading *any* file, "returned as an embedded resource" when it is neither image nor audio, and the output schema gained an `anyOf` branch whose second case is a `resource` carrying a `blob`, while the first case lost `blob` from its `type` enum. A client that bound a handler to the earlier output shape at declaration time is now holding a stale annotation; the check says so, and the two hashes it prints are the two real contracts.
 
 The other two, `read_text_file` and `get_file_info`, are the more interesting findings: the `2026.8.31` release added an `openWorldHint` annotation to every tool it serves, and those two changed *nothing else*. Under recipe 1 they were byte-identical and reported healthy. Under recipe 2 their contracts moved, correctly, because what a tool declares about its own side effects is part of what it declares.
+
+Both sides of this pair are now hashed under **recipe 3**, so the contract hashes differ from the v0.4.x ones for the same declarations — the recipe widened, the servers did not change. This capture happens to show `title` and `execution` identical between the two versions, so recipe 3 adds no finding *here*: it closes a gap the capture demonstrates the fields are exposed to, not one it exhibits. The mutation is pinned in the test suite instead, where it can be stated as a construction rather than implied as evidence.
 
 The three calls in the observed file were made against the running server and every `contract_hash` is the validator's own fingerprint over what that server served. The raw replies are committed in `examples/captures/` and `tests/test_filesystem_example.py` recomputes each hash from them, so the pair cannot silently drift from its evidence. To recapture:
 
@@ -134,7 +136,7 @@ That needs Node.js (`npx`) and registry access. The committed files are static, 
 To rebuild the pair from the committed captures — which is how a pair is migrated to a new contract recipe, with no Node.js and no network:
 
 ```bash
-python3 examples/rebuild_pair.py --recipe 2     # rewrite the pair and its derived hashes
+python3 examples/rebuild_pair.py --recipe 3     # rewrite the pair and its derived hashes
 python3 examples/rebuild_pair.py --check        # report differences, write nothing
 ```
 
@@ -157,7 +159,10 @@ A contract hash answers "has this declaration changed?" — which is only useful
 | Recipe | Covers | Applies to |
 |--------|--------|-----------|
 | `1` | name, description, input schema, permissions | every ledger written before v0.4.0, and any declaration that does not state a recipe |
-| `2` | recipe 1, plus the declared output schema and the tool's MCP annotation hints | the current default for new declarations |
+| `2` | recipe 1, plus the declared output schema and the tool's MCP annotation hints | declarations that opted up before v0.5.0 |
+| `3` | recipe 2, plus the tool's declared title and its execution parameters (`taskSupport`) | the current default for new declarations |
+
+Each recipe covers what the raw captures actually hold. `_meta` and `icons` sit outside all of them deliberately: no capture of a served tool has ever carried either, and a recipe that folded in a field the declaration does not carry would hash the fallback default and report a contract no server ever served. That exclusion is measured against the captures in the test suite rather than asserted in a comment.
 
 Where it lives:
 
@@ -175,7 +180,7 @@ Four rules make that safe rather than decorative:
 Migrating a pair between recipes re-derives every contract hash from the raw captures, never from a stored hash — which is why the example pair can be rebuilt offline:
 
 ```bash
-python3 examples/rebuild_pair.py --recipe 2
+python3 examples/rebuild_pair.py --recipe 3
 ```
 
 The example in this repository shows what the wider recipe buys: two of its three findings are contract changes that recipe 1 reported as healthy.
@@ -194,6 +199,7 @@ The example in this repository shows what the wider recipe buys: two of its thre
 - [x] Anchored evidence ledger — `verify` refuses a ledger that does not reach the head digest recorded outside it (v0.3)
 - [x] Contract recipes — a contract hash states which declaration fields it covers, and a recipe disagreement is refused rather than guessed (v0.4)
 - [x] Published to PyPI with PEP 740 build attestations (v0.4.3)
+- [x] Recipe 3 — the contract covers the served `title` and `execution`, which every tool carries and neither of which recipe 2 hashed (v0.5)
 - [ ] **A2A agent-card validation** — validate A2A agent cards
       (`.well-known/agent-card.json`) against observed agent behaviour:
       declared capabilities vs runtime delegation, auth requirements honoured,
@@ -232,10 +238,10 @@ GitHub Actions OIDC. No signing key exists to leak. With
 ```sh
 uvx pypi-attestations verify pypi \
   --repository https://github.com/narko4u/mcp-evidence-validator \
-  pypi:mcp_evidence_validator-0.4.4-py3-none-any.whl
+  pypi:mcp_evidence_validator-0.5.0-py3-none-any.whl
 ```
 
-which prints `OK: mcp_evidence_validator-0.4.4-py3-none-any.whl`. Name the file
+which prints `OK: mcp_evidence_validator-0.5.0-py3-none-any.whl`. Name the file
 you installed — `pypi:<filename>` has PyPI serve it, or pass a local path or a
 `files.pythonhosted.org` URL to check a file you already hold. The check is not
 decorative: pointing it at a different repository fails with
@@ -256,12 +262,12 @@ workload identity). Each release contains:
 the repository's `release.yml` workflow running under *that* tag (GitHub Actions
 OIDC, issuer `https://token.actions.githubusercontent.com`), so a command pinned
 to some other release fails with `none of the expected identities matched what
-was in the certificate`: the certificate for `v0.4.4` names `v0.4.4` and nothing
+was in the certificate`: the certificate for `v0.5.0` names `v0.5.0` and nothing
 else. This needs the [cosign CLI](https://docs.sigstore.dev/cosign/installation/) —
 which is why the attestation check above is the quicker one.
 
 ```sh
-TAG=v0.4.4   # the release you are verifying
+TAG=v0.5.0   # the release you are verifying
 gh release download "$TAG" --repo narko4u/mcp-evidence-validator --pattern 'SHA256SUMS*'
 
 cosign verify-blob \

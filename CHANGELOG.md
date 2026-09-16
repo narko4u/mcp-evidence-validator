@@ -6,6 +6,41 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-16
+
+### Added
+- **Contract recipe 3** — the contract hash now covers the tool's declared `title`
+  and its `execution` parameters (`taskSupport`). Recipe 2 folded in the output
+  schema and the annotation hints but left these two uncovered, and every served
+  tool in the committed capture (14/14) carries both, so a server could retitle a
+  tool — display metadata a client may put in front of a user, and which a decision
+  may later be recorded against — or change what its execution permits, and still
+  report healthy. Recipe 3 is the current default for new declarations; recipe 2
+  remains valid and its field set is unchanged, so declarations hashed under it keep
+  hashing to those same values. Issue #26.
+- The example pair is rebuilt under recipe 3 by re-deriving every contract hash
+  from the committed captures — `python3 examples/rebuild_pair.py --recipe 3` — so
+  the migration is reproducible offline rather than a hand-edited set of hashes.
+
+### Changed
+- Contract hashes in `examples/filesystem-server-*.json` and the stored per-call
+  hashes in `examples/captures/*.calls.json` differ from their v0.4.x values for
+  the same declarations: the recipe widened, the servers did not change. The pair's
+  findings are unchanged at three, because this capture shows `title` and
+  `execution` identical between the two captured versions. The gap recipe 3 closes
+  is therefore pinned by a constructed mutation in the test suite, stated as a
+  construction rather than implied to be evidence the capture holds.
+
+### Fixed
+- A test asserted that recipe `"3"` was rejected as an unknown recipe. Introducing
+  recipe 3 made it pass by *accepting* a valid recipe instead of by rejecting an
+  invalid one, so it had stopped testing anything. The sentinel is now outside the
+  known set, and the test says why — a rejected-value fixture that later becomes a
+  real value fails silently.
+- A test asserts that every field a recipe hashes is carried by the capture's
+  wire-to-declaration mapping. A field the mapping dropped would leave the hash
+  covering the fallback default and reporting a contract no server served.
+
 ## [0.4.4] - 2026-09-16
 
 ### Fixed

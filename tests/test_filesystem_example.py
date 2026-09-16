@@ -17,6 +17,7 @@ from mcp_evidence_validator.cli import load_json, main
 from mcp_evidence_validator.fingerprint import fingerprint
 from mcp_evidence_validator.validator import (
     CONTRACT_RECIPE_CURRENT,
+    CONTRACT_RECIPE_FIELDS,
     build_contract,
     contract_payload,
     validate_batch,
@@ -48,9 +49,12 @@ def to_declared(tool, recipe=CONTRACT_RECIPE_CURRENT):
         "input_schema": tool.get("inputSchema", {}),
         "permissions": tool.get("permissions", []),
     }
-    if recipe == "2":
+    if recipe in ("2", "3"):
         declared["output_schema"] = tool.get("outputSchema", {})
         declared["annotations"] = tool.get("annotations", {})
+    if recipe == "3":
+        declared["title"] = tool.get("title", "")
+        declared["execution"] = tool.get("execution", {})
     declared["contract_recipe"] = recipe
     return declared
 
@@ -290,6 +294,112 @@ def test_recipe_2_hashes_the_annotation_hints():
     hinted = dict(old, annotations=dict(old["annotations"], destructiveHint=True))
     assert build_contract(hinted, "2") != build_contract(old, "2")
     assert build_contract(hinted, "1") == build_contract(old, "1")
+
+
+def test_recipe_2_was_blind_to_title_and_execution():
+    """The hole issue #26 described, pinned deliberately.
+
+    Recipe 2 folds the output schema and the annotation hints, but every served
+    tool also carries a ``title`` and an ``execution`` block and neither was in
+    the hash: a server could retitle a tool, or change what its execution
+    permits, and report healthy.
+
+    The captures show both fields served and *unchanged* between the two
+    versions, so this gap is pinned with a constructed mutation rather than one
+    the example exhibits. The capture proves the fields ride on the wire; it
+    does not prove they ever moved, and saying otherwise would be inventing
+    evidence the pair does not hold.
+    """
+    declared_raw, _, _ = captures()
+    old = served_tools(declared_raw)["read_text_file"]
+    assert old["title"], "the capture should carry a served title"
+    assert old["execution"], "the capture should carry an execution block"
+
+    retitled = dict(old, title="Something Else Entirely")
+    retasked = dict(old, execution={"taskSupport": "required"})
+    assert retitled["title"] != old["title"]
+    assert retasked["execution"] != old["execution"]
+
+    for mutated in (retitled, retasked):
+        assert build_contract(mutated, "2") == build_contract(old, "2")
+        assert build_contract(mutated, "3") != build_contract(old, "3")
+
+
+def test_recipe_3_still_excludes_the_fields_no_capture_carries():
+    """``_meta`` and ``icons`` are deliberately outside every recipe.
+
+    No capture has carried either, and folding a field into the contract that
+    the declaration does not carry would hash the fallback default as though a
+    server had served it. The exclusion is a measurement, not an oversight, so
+    it is asserted against the captures rather than asserted in a comment.
+    """
+    for capture in captures():
+        for tool in capture["tools"]:
+            assert "_meta" not in tool
+            assert "icons" not in tool
+
+
+def test_every_field_a_recipe_hashes_is_carried_by_the_capture_mapping():
+    """A recipe must not hash a field the declaration mapping drops.
+
+    If the mapping omits a field the recipe covers, the hash covers the
+    fallback default and reports a contract nobody captured. Running this over
+    every known recipe means adding one without carrying its fields fails here,
+    instead of quietly widening what "unchanged" is taken to mean.
+    """
+    declared_raw, _, _ = captures()
+    raw = {tool["name"]: tool for tool in declared_raw["tools"]}["read_text_file"]
+
+    for recipe in sorted(CONTRACT_RECIPE_FIELDS):
+        declared = to_declared(raw, recipe)
+        for field in CONTRACT_RECIPE_FIELDS[recipe]:
+            assert field in declared, (
+                f"recipe {recipe} hashes {field!r} but the capture mapping "
+                f"drops it, so the hash would cover a default"
+            )
+
+    # And the fields recipe 3 was introduced for carry what was served.
+    declared = to_declared(raw, "3")
+    assert declared["title"] == raw["title"]
+    assert declared["execution"] == raw["execution"]
+
+
+def test_recipe_3_hashes_exactly_the_declared_title_and_execution():
+    """Recipe 3 is recipe 2 plus two fields, and no fewer.
+
+    This pins the field set in both directions: a field silently dropped would
+    weaken the contract back to a gap this release exists to close, and a field
+    silently added would change what every recipe-3 hash means without a recipe
+    of its own.
+    """
+    declared_raw, _, _ = captures()
+    old = served_tools(declared_raw)["read_text_file"]
+
+    payload = contract_payload(old, "3")
+    assert list(payload) == [
+        "name",
+        "description",
+        "input_schema",
+        "permissions",
+        "output_schema",
+        "annotations",
+        "title",
+        "execution",
+    ]
+    assert payload["title"] == old["title"]
+    assert payload["execution"] == old["execution"]
+    assert build_contract(old, "3") == fingerprint(payload)
+
+    # The recipe-2 field set is untouched: widening is a new recipe, never a
+    # redefinition of an existing one.
+    assert list(contract_payload(old, "2")) == [
+        "name",
+        "description",
+        "input_schema",
+        "permissions",
+        "output_schema",
+        "annotations",
+    ]
 
 
 def test_a_single_tool_can_opt_out_of_the_manifest_recipe():

@@ -75,10 +75,16 @@ SAMPLE_TEXT = "capture fixture\n"
 def to_declared(tool, recipe=CONTRACT_RECIPE_CURRENT):
     """Map an MCP tool object onto the repository's declaration shape.
 
-    ``recipe`` 2 also carries the tool's ``outputSchema`` and its MCP annotation
-    hints, so both are inside the contract hash. ``recipe`` 1 is the legacy
-    four-field shape, kept because declarations hashed under it must keep
-    hashing to the same values.
+    The declaration carries exactly the fields the recipe folds into the
+    contract hash - no more, and never fewer. A field the recipe covers but
+    this mapping drops would leave the hash covering the fallback default
+    instead of what the server actually served, which reads as a healthy
+    contract for a declaration nobody captured.
+
+    ``recipe`` 2 adds the tool's ``outputSchema`` and its MCP annotation hints;
+    ``recipe`` 3 adds the served ``title`` and ``execution``. ``recipe`` 1 is
+    the legacy four-field shape, kept because declarations hashed under it must
+    keep hashing to the same values.
     """
     declared = {
         "name": tool["name"],
@@ -86,9 +92,16 @@ def to_declared(tool, recipe=CONTRACT_RECIPE_CURRENT):
         "input_schema": tool.get("inputSchema", {}),
         "permissions": tool.get("permissions", []),
     }
-    if recipe == "2":
+    if recipe in ("2", "3"):
         declared["output_schema"] = tool.get("outputSchema", {})
         declared["annotations"] = tool.get("annotations", {})
+    if recipe == "3":
+        # `title` is display metadata a client may put in front of a user, and
+        # a decision may later be recorded against it; `execution` says how the
+        # tool is expected to run. Both ride on every served tool and neither
+        # was covered before recipe 3.
+        declared["title"] = tool.get("title", "")
+        declared["execution"] = tool.get("execution", {})
     declared["contract_recipe"] = recipe
     return declared
 

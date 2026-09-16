@@ -1,12 +1,12 @@
 {
-  "contract_recipe": "2",
+  "contract_recipe": "3",
   "observations": [
     {
       "args": {
         "path": "sample.txt"
       },
-      "contract_hash": "sha256:931d9d1105086a83bbfe253b8d26e5b74cf065a191a384030332bd5d9dedf664",
-      "contract_recipe": "2",
+      "contract_hash": "sha256:ddaa28575739db56e4f8ecfd4c5ed63d0a7b63ad287023a74cbbb3581660a027",
+      "contract_recipe": "3",
       "index": 1,
       "observed_at": "2026-09-13T13:18:41Z",
       "tool": "read_text_file"
@@ -15,8 +15,8 @@
       "args": {
         "path": "pixel.png"
       },
-      "contract_hash": "sha256:ca2dadfaef32cdc9599ecfd8cf88bb69e59d3c57a04d1612675ddc8c8f43bb5d",
-      "contract_recipe": "2",
+      "contract_hash": "sha256:9eb812def2c5065953c632d0c42d8a0d06a62dd6d9f05a1a4ee063eec6b014dc",
+      "contract_recipe": "3",
       "index": 2,
       "observed_at": "2026-09-13T13:18:41Z",
       "tool": "read_media_file"
@@ -25,8 +25,8 @@
       "args": {
         "path": "sample.txt"
       },
-      "contract_hash": "sha256:51b986f18bc21444f202670591a7d734721a24aeb5316b0d8cf94ebe076d390f",
-      "contract_recipe": "2",
+      "contract_hash": "sha256:1f66296c4f5cb71a8e0b79058e4a544ea1c69f5cc106570b1b8cd413f99f79a0",
+      "contract_recipe": "3",
       "index": 3,
       "observed_at": "2026-09-13T13:18:41Z",
       "tool": "get_file_info"
