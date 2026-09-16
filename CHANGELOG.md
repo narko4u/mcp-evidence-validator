@@ -6,6 +6,16 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-09-16
+
+### Added
+- Published to PyPI via GitHub OIDC trusted publishing, with build attestations
+  attached. The distributions are handed to the publisher as their own artifact,
+  so the checksums, SBOM and signatures stay release assets — the upload action
+  rejects any non-distribution file in its payload
+- Release guards: the built distributions must carry the tag version, and the
+  package must report it, before anything is signed or uploaded
+
 ## [0.4.2] - 2026-09-13
 
 ### Fixed

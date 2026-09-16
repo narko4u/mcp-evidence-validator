@@ -32,6 +32,48 @@ jobs:
           python -m build
           ls -la dist/
 
+      - name: Assert the built version matches the tag
+        # PyPI never allows a filename to be reused, so a distribution whose
+        # version does not match its tag would permanently burn that version
+        # number on mismatched code. Fail before anything is signed or uploaded.
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
+          expected="${tag#v}"
+          esc="${expected//./\\.}"
+          shopt -s nullglob
+          files=(dist/*.whl dist/*.tar.gz)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::Build produced no distributions in dist/."
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            base="$(basename "$f")"
+            if ! grep -Eq "(^|[-_])${esc}([-_.]|$)" <<< "$base"; then
+              echo "::error::'$base' does not carry tag version '$expected' (tag '$tag')."
+              echo "::error::Bump the version to match the tag before tagging."
+              exit 1
+            fi
+          done
+          echo "version/tag check passed: $expected"
+
+      - name: Assert the package reports the tag version
+        # The filename check reads the build backend; the CLI reads the version
+        # from installed metadata, falling back to a literal in a source tree.
+        # A fallback that drifts is invisible until a user runs --version, so
+        # assert the runtime string against the tag as well.
+        run: |
+          set -euo pipefail
+          expected="${{ github.event.inputs.tag || github.ref_name }}"
+          expected="${expected#v}"
+          reported="$(PYTHONPATH=src python -c 'import mcp_evidence_validator as m; print(m.__version__)')"
+          if [ "$reported" != "$expected" ]; then
+            echo "::error::Package reports '$reported' but the tag is '$expected'."
+            echo "::error::Update the source-tree fallback in src/mcp_evidence_validator/__init__.py."
+            exit 1
+          fi
+          echo "runtime version check passed: $reported"
+
       - name: Validate release tag input
         if: github.event_name == 'workflow_dispatch'
         run: |
@@ -63,6 +105,18 @@ jobs:
             --output-signature SHA256SUMS.sig \
             --output-certificate SHA256SUMS.pem
 
+      - name: Keep the built distributions for publishing
+        # Distributions only. The PyPI upload action rejects any other file in
+        # its packages-dir (InvalidDistribution), so the checksums, SBOM and
+        # signatures stay out of this artifact and remain release assets.
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          if-no-files-found: error
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -70,3 +124,54 @@ jobs:
           files: |
             dist/*
           generate_release_notes: true
+
+  publish:
+    # PyPI trusted publishing (OIDC, no API token, no stored secret). Held
+    # closed until the project's pending publisher exists on PyPI and the
+    # repository variable PYPI_PUBLISH_ENABLED is 'true', so a tag push never
+    # leaves a failed run merely because the publisher is not configured yet.
+    # PyPI publisher fields matched: owner narko4u, repository
+    # mcp-evidence-validator, workflow release.yml, environment pypi.
+    needs: release
+    if: ${{ vars.PYPI_PUBLISH_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Fetch the distributions built by the release job
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Assert the upload payload is only distributions
+        # Fail loudly rather than let the publisher discover a stray file: an
+        # unsupported filename aborts the whole upload.
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(dist/*)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::No distributions were found in dist/."
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            case "$(basename "$f")" in
+              *.whl|*.tar.gz) ;;
+              *)
+                echo "::error::Not a distribution: $(basename "$f")"
+                echo "::error::PyPI accepts only wheels and sdists in the upload payload."
+                exit 1
+                ;;
+            esac
+          done
+          echo "payload is distributions only:"
+          ls -1 dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          attestations: true
