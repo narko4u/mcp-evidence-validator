@@ -5,7 +5,7 @@
 
 Validate what an MCP server *declares* against what it *actually does*, and produce a tamper-evident evidence record you can hand to an auditor.
 
-**Status:** v0.4 (installable)  ·  **License:** Apache-2.0  ·  **Language:** Python 3.10+ (stdlib only, zero dependencies)
+**Status:** v0.4.4 — published on PyPI with build attestations  ·  **License:** Apache-2.0  ·  **Language:** Python 3.10+ (stdlib only, zero dependencies)
 
 **Built by [Empire Labs Pty Ltd](https://empirelabs.com.au)** and published as part of the Empire Stack — the evidence layer for agent actions. Related public work:
 
@@ -36,14 +36,19 @@ The **declared-vs-observed gap** is the measurement finding that matters. This v
 ## Install
 
 ```bash
-pip install mcp-evidence-validator      # from PyPI once published
-# or from source:
+pip install mcp-evidence-validator
+```
+
+Python 3.10+, standard library only — no dependencies. Or from source:
+
+```bash
 git clone https://github.com/narko4u/mcp-evidence-validator.git
 cd mcp-evidence-validator
 pip install .
 ```
 
-No dependencies — Python 3.10+ standard library only.
+Releases carry a build attestation you can check before running the code you
+installed — see *Verifying releases* below.
 
 ## Quick start
 
@@ -188,6 +193,7 @@ The example in this repository shows what the wider recipe buys: two of its thre
 - [x] Test suite + CI (Python 3.10–3.12)
 - [x] Anchored evidence ledger — `verify` refuses a ledger that does not reach the head digest recorded outside it (v0.3)
 - [x] Contract recipes — a contract hash states which declaration fields it covers, and a recipe disagreement is refused rather than guessed (v0.4)
+- [x] Published to PyPI with PEP 740 build attestations (v0.4.3)
 - [ ] **A2A agent-card validation** — validate A2A agent cards
       (`.well-known/agent-card.json`) against observed agent behaviour:
       declared capabilities vs runtime delegation, auth requirements honoured,
@@ -214,6 +220,31 @@ See [SECURITY.md](SECURITY.md) for the vulnerability reporting policy. Security 
 
 ## Verifying releases
 
+Two independent things are worth checking, and they answer different questions.
+
+### That the file you installed came from this repository
+
+The wheel and sdist on PyPI carry [PEP 740](https://peps.python.org/pep-0740/)
+build attestations, published by this repository's `release.yml` workflow under
+GitHub Actions OIDC. No signing key exists to leak. With
+[`uv`](https://docs.astral.sh/uv/) this needs no installation:
+
+```sh
+uvx pypi-attestations verify pypi \
+  --repository https://github.com/narko4u/mcp-evidence-validator \
+  pypi:mcp_evidence_validator-0.4.4-py3-none-any.whl
+```
+
+which prints `OK: mcp_evidence_validator-0.4.4-py3-none-any.whl`. Name the file
+you installed — `pypi:<filename>` has PyPI serve it, or pass a local path or a
+`files.pythonhosted.org` URL to check a file you already hold. The check is not
+decorative: pointing it at a different repository fails with
+`provenance was signed by repository "narko4u/mcp-evidence-validator", expected
+...`. With pip, `pip install pypi-attestations` and drop the `uvx`. PyPI's own
+project page shows the same attestations under each file's *Provenance* link.
+
+### That the release bundle is signed and internally consistent
+
 Releases are signed with **sigstore keyless signing** (GitHub Actions
 workload identity). Each release contains:
 
@@ -221,21 +252,30 @@ workload identity). Each release contains:
 - `SHA256SUMS.sig` — the cosign signature over `SHA256SUMS`
 - `SHA256SUMS.pem` — the ephemeral signing certificate
 
-To verify a release (requires the [cosign CLI](https://docs.sigstore.dev/cosign/installation/)):
+**Set `TAG` to the release you are verifying.** The expected signer identity is
+the repository's `release.yml` workflow running under *that* tag (GitHub Actions
+OIDC, issuer `https://token.actions.githubusercontent.com`), so a command pinned
+to some other release fails with `none of the expected identities matched what
+was in the certificate`: the certificate for `v0.4.4` names `v0.4.4` and nothing
+else. This needs the [cosign CLI](https://docs.sigstore.dev/cosign/installation/) —
+which is why the attestation check above is the quicker one.
 
 ```sh
+TAG=v0.4.4   # the release you are verifying
+gh release download "$TAG" --repo narko4u/mcp-evidence-validator --pattern 'SHA256SUMS*'
+
 cosign verify-blob \
   --cert SHA256SUMS.pem \
   --signature SHA256SUMS.sig \
-  --certificate-identity "https://github.com/narko4u/mcp-evidence-validator/.github/workflows/release.yml@refs/tags/v0.2.1" \
+  --certificate-identity "https://github.com/narko4u/mcp-evidence-validator/.github/workflows/release.yml@refs/tags/${TAG}" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   SHA256SUMS
 ```
 
-The expected signer identity is the repository's `release.yml` workflow
-running under the release tag (GitHub Actions OIDC, issuer
-`https://token.actions.githubusercontent.com`). After the signature
-verifies, check the asset hashes:
+That prints `Verified OK`. The certificate asset is stored base64-encoded, which
+`cosign` reads as it comes out of the release; `base64 -d SHA256SUMS.pem >
+cert.pem` gives the plain PEM for a tool that wants one. Then check the assets
+against the signed list:
 
 ```sh
 sha256sum -c SHA256SUMS
