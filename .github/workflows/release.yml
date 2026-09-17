@@ -18,11 +18,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -109,7 +109,7 @@ jobs:
         # Distributions only. The PyPI upload action rejects any other file in
         # its packages-dir (InvalidDistribution), so the checksums, SBOM and
         # signatures stay out of this artifact and remain release assets.
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist
           path: |
@@ -118,7 +118,7 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
@@ -141,7 +141,7 @@ jobs:
       contents: read
     steps:
       - name: Fetch the distributions built by the release job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: dist
           path: dist
