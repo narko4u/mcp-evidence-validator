@@ -1,0 +1,24 @@
+=== what PyPI says about the publisher ===
+  {"environment": "pypi", "kind": "GitHub", "repository": "narko4u/mcp-evidence-validator", "workflow": "release.yml"}
+
+=== bundle parsed under Sigstore's model ===
+  parsed: Bundle
+
+=== verifying signature, cert chain and Rekor inclusion ===
+  PASS  issuer
+  PASS  signer (workflow@ref)
+  PASS  repository
+  PASS  runner environment
+
+  VERDICT: VERIFIED
+  The DSSE signature, the Fulcio chain and the Rekor inclusion proof all
+  check out, and the signing certificate's OIDC claims are the builder we
+  claim. provenance_depth_verified may be recorded as 'builder'.
+
+=== the statement binds this exact wheel ===
+  subject name   : mcp_evidence_validator-0.5.0-py3-none-any.whl
+  subject sha256 : sha256:a9c34e8b4040e9e7a370953430eed09e7790bb3c15c0a0f6beb74d311d203053
+  record claims  : sha256:a9c34e8b4040e9e7a370953430eed09e7790bb3c15c0a0f6beb74d311d203053
+  match          : True
+  predicateType  : https://docs.pypi.org/attestations/publish/v1
+  predicate      : None

@@ -1,0 +1,16 @@
+{
+  "contract_recipe": "3",
+  "observations": [
+    {
+      "args": {
+        "path": "sample.txt"
+      },
+      "contract_hash": "sha256:ddaa28575739db56e4f8ecfd4c5ed63d0a7b63ad287023a74cbbb3581660a027",
+      "contract_recipe": "3",
+      "index": 1,
+      "observed_at": "2026-09-20T06:39:49Z",
+      "tool": "read_text_file"
+    }
+  ],
+  "server": "secure-filesystem-server"
+}

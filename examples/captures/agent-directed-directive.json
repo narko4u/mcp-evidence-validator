@@ -1,0 +1,65 @@
+{
+  "arguments": {
+    "path": "/tmp/agent-directed-root/sample.txt"
+  },
+  "constraints_checked": [
+    "tool is served in the menu the model was given (14 tools at 2026.8.31)",
+    "every argument is declared by the served input schema for that tool",
+    "every required argument for that tool is present",
+    "the path resolves inside the server's allowed root",
+    "the chosen tool has no destructive or mutating annotation"
+  ],
+  "directed_at": "2026-09-20T06:36:27Z",
+  "directive_version": "agent-directive/1",
+  "director": {
+    "agent": "Empire Labs Agent",
+    "agent_profile": "Sovereign",
+    "menu_digest": "sha256:cfcc18d859025964fc1007f9cc014ed19e25a7486e058ad997f79c68145e8fed",
+    "model_id": "deepseek-flash",
+    "operator": "Empire Labs Pty Ltd",
+    "provider": "deepseek",
+    "session": "hermes-agent session, Sovereign profile, 2026-09-20",
+    "version": "DeepSeek-V4.1-Flash"
+  },
+  "fixture": {
+    "content_utf8": "capture fixture\n",
+    "path": "/tmp/agent-directed-root/sample.txt",
+    "sha256": "sha256:9106449b6fba27dceb80b0f4668a414a6864e412199e6af72c80c1af69d8c5ca"
+  },
+  "rationale": "read_text_file over the deprecated read_file: the server's own description for read_file says 'DEPRECATED: Use read_text_file instead', so recording a call to the older tool would record the wrong choice rather than a defensible one. A read-only tool over every mutating alternative: write_file, edit_file, create_directory and move_file all change state, and a recorded call should not leave the reader reasoning about side effects it caused. path is the only required argument, and the value stays inside the server's allowed root, so the call cannot raise a scope violation. The target is a fixture whose bytes we commit alongside the capture, so the returned content can be checked against the fixture rather than taken on trust.",
+  "rejected": [
+    {
+      "tool": "read_file",
+      "why": "served description marks it DEPRECATED in favour of read_text_file"
+    },
+    {
+      "tool": "write_file",
+      "why": "writes to the allowed root; a recorded call should not mutate state"
+    },
+    {
+      "tool": "edit_file",
+      "why": "destructiveHint true; mutates state"
+    },
+    {
+      "tool": "move_file",
+      "why": "destructiveHint true; mutates state"
+    },
+    {
+      "tool": "create_directory",
+      "why": "mutates state for no evidential gain"
+    },
+    {
+      "tool": "list_allowed_directories",
+      "why": "takes no arguments, so it exercises none of the declared input schema"
+    },
+    {
+      "tool": "read_media_file",
+      "why": "no image or audio fixture in the root; the call would fail on a missing file"
+    },
+    {
+      "tool": "search_files",
+      "why": "two required arguments and a glob; wider surface than the evidence needs"
+    }
+  ],
+  "tool": "read_text_file"
+}
