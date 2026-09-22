@@ -287,6 +287,21 @@ against the signed list:
 sha256sum -c SHA256SUMS
 ```
 
+---
+
+## Acknowledgements
+
+This validator checks implementations of the
+**[Model Context Protocol](https://modelcontextprotocol.io/)** (MCP). MCP is an
+independent project with its own maintainers and specification process. It is
+credited here as the protocol being validated; that does not imply that MCP's
+maintainers or publisher have reviewed, endorsed or certified this tool.
+
+The validator itself has no third-party runtime dependencies - it runs on the
+Python standard library alone.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions welcome under the Apache-2.0 licence; please follow the Code of Conduct.
